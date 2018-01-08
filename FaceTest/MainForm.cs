@@ -63,79 +63,122 @@ namespace FaceTest
             }
             
         }
-        private Image<Rgb, byte> rgbImg;
-        private Rectangle faceRect;
-        private Rectangle smileRect;
-        private Rectangle selectRect;
-        private int showRate = 4;
+
+
+        private int showRate = 10;
         private int showRateIndex = 0;
-        private Rectangle preFace;
+        private FrameRect preFace = null;
+        private FrameRect preSmile = null;
+        private FrameRect preSelectArea = null;
+        private Mat preFrame = null;
+        private bool timerState = false;
+
         private void Capture_ImageGrabbed(object sender, EventArgs e)
         {
             
             Mat frame = new Mat();
-            capture.Retrieve(frame, 0);    //接收数据  
-            //Mat frame = capture.QueryFrame();
+            capture.Retrieve(frame, 0);    //接收数据
+
+
+            var showFrame = frame.Clone();
+            FrameRect face, smile, selectArea;
+            if (showRateIndex == 0 || showRateIndex % showRate == 0)
+            {
+                face = getFace(frame);
+                selectArea = getSelectArea(frame, face);
+                smile = getSmile(frame, face);
+                preFrame = frame;
+                preFace = face;
+                preSmile = smile;
+                preSelectArea = selectArea;
+            }
+            else
+            {
+                face = preFace;
+                selectArea = preSelectArea;
+                smile = preSmile; 
+            }
+            
+            Graphics g = Graphics.FromImage(showFrame.Bitmap);
+            if(face != null)
+                g.DrawRectangle(new Pen(Color.Red, 3), face.rect);
+            if (smile != null)
+            {
+                showRateIndex++;
+                OnSmileAction(frame, face, smile, selectArea);
                 
-            Image<Gray, byte> tempImg = frame.ToImage<Gray, byte>();
-            Image<Rgba, byte> rgbaImg = frame.ToImage<Rgba, byte>();
-            var rgbFrameImg = frame.ToImage<Rgb, byte>();
-            Graphics g = Graphics.FromImage(frame.Bitmap);
-           
-            //face detection   
+                Image<Rgba, byte> rgbaImg = frame.ToImage<Rgba, byte>();
+                imageBox2.Image = rgbaImg.Copy(selectArea.rect);
+                g.DrawRectangle(new Pen(Color.Blue, 3), smile.rect);
+            }
+            imageBox1.Image = showFrame;       //显示图像  
+        }
+
+        private void OnSmileAction(Mat frame,FrameRect face,FrameRect smile,FrameRect selectArea)
+        {
+            if(timerState == false)
+            {
+                timerState = true;
+                timer1.Enabled = true;
+                timer1.Start();
+                tb_tel.AppendText("1");
+            }
+        }
+
+
+
+        private FrameRect getFace(Mat frame)
+        {
+            FrameRect face = null;
             using (UMat ugray = new UMat())
             {
                 CvInvoke.CvtColor(frame, ugray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);//灰度化图片  
                 CvInvoke.EqualizeHist(ugray, ugray);//均衡化灰度图片  
 
                 Rectangle[] facesDetected = faceClassifier.DetectMultiScale(ugray, 1.1, 10, new System.Drawing.Size(20, 20));
-                if (facesDetected.Length > 0)
+                if (facesDetected != null && facesDetected.Length > 0)
                 {
-                    
-                    var face = getMaxRectangle(facesDetected);
-                    faceRect = face;
-                    g.DrawRectangle(new Pen(Color.Red, 2), face);
-
-                    Rectangle halfFace = new Rectangle(face.X, face.Y + face.Height*3 / 5, face.Width, face.Height*2 / 5);
-                    Image<Gray, byte> grayFace = tempImg.Copy(halfFace);
-
-                    //imageBox2.Image = grayFace;
-                    Rectangle[] smileDetected = smileClassifier.DetectMultiScale(grayFace, 1.16, 35, new System.Drawing.Size(25, 25));
-                    if (smileDetected.Length > 0)
-                    {
-                        var smile = getMaxRectangle(smileDetected);
-                        smile.X += halfFace.X;
-                        smile.Y += halfFace.Y;
-                        g.DrawRectangle(new Pen(Color.Blue, 2), smile);
-
-                        if(flag == 0)
-                        {
-                            int leftRightWidth = (imgWidth - face.Width) / 2;
-                            int topWidth = (imgHeigth - face.Height) / 2;
-                            int x, y = 0;
-                            x = face.X - leftRightWidth < 0 ? 0 : face.X - leftRightWidth;
-                            y = face.Y - topWidth < 0 ? 0 : face.Y - topWidth;
-                            x = x + imgWidth > rgbaImg.Width ? rgbaImg.Width - imgWidth : x;
-                            y = y + imgHeigth > rgbaImg.Height ? rgbaImg.Height - imgHeigth : y;
-
-                            Rectangle imgFace = new Rectangle(x, y, imgWidth, imgHeigth);
-                            imageBox2.Image = rgbaImg.Copy(imgFace);
-                            rgbImg = rgbFrameImg.Copy(imgFace);
-                            flag = 1;
-                            lb_tip.Text = "请输入手机号码";
-                        }
-                    }
+                    face = new FrameRect(getMaxRectangle(facesDetected).rect);
                 }
             }
-                
-
-                imageBox1.Image = frame;       //显示图像 
-           
-            
+            return face;
         }
 
-        private Rectangle getMaxRectangle(Rectangle[] list)
+        private FrameRect getSmile(Mat frame,FrameRect face)
         {
+            if (face == null) return null;
+            Image<Gray, byte> tempImg = frame.ToImage<Gray, byte>();
+            Rectangle halfFace = new Rectangle(face.rect.X + face.rect.Width/5, face.rect.Y + face.rect.Height * 3 / 5, face.rect.Width*3/5, face.rect.Height * 2 / 5);
+            Image<Gray, byte> grayFace = tempImg.Copy(halfFace);
+            //imageBox2.Image = grayFace;
+            FrameRect smile = null;
+            Rectangle[] smileDetected = smileClassifier.DetectMultiScale(grayFace, 1.16, 35, new System.Drawing.Size(25, 25));
+            if (smileDetected != null && smileDetected.Length > 0)
+            {
+                smile = new FrameRect(getMaxRectangle(smileDetected).rect);
+                smile.rect.X += halfFace.X;
+                smile.rect.Y += halfFace.Y;
+            }
+            return smile;
+        }
+
+        private FrameRect getSelectArea(Mat frame,FrameRect face)
+        {
+            if (face == null) return null;
+            int leftRightWidth = (imgWidth - face.rect.Width) / 2;
+            int topWidth = (imgHeigth - face.rect.Height) / 2;
+            int x, y = 0;
+            x = face.rect.X - leftRightWidth < 0 ? 0 : face.rect.X - leftRightWidth;
+            y = face.rect.Y - topWidth < 0 ? 0 : face.rect.Y - topWidth;
+            x = x + imgWidth > frame.Width ? frame.Width - imgWidth : x;
+            y = y + imgHeigth > frame.Height ? frame.Height - imgHeigth : y;
+            FrameRect rect = new FrameRect(new Rectangle(x, y, imgWidth, imgHeigth));
+            return rect;
+        }
+
+        private FrameRect getMaxRectangle(Rectangle[] list)
+        {
+            if (list == null) return null;
             int max = 0;
             Rectangle maxRectangle = new Rectangle(0,0,0,0);
             foreach(Rectangle r in list)
@@ -146,7 +189,7 @@ namespace FaceTest
                     maxRectangle = r;
                 }
             }
-            return maxRectangle;
+            return new FrameRect(maxRectangle);
         }
 
        
@@ -159,27 +202,29 @@ namespace FaceTest
             lb_company.Text = u.company;
             lb_depart.Text = u.depart;
             
-            if (SaveImg())
-            {
-                Thread t = new Thread(new ParameterizedThreadStart(speak));
-                t.Start(u.name + "同学，欢迎光临,有有有有有有有有请下一位");
+            //if (SaveImg(tel,frame))
+            //{
+            //    Thread t = new Thread(new ParameterizedThreadStart(speak));
+            //    t.Start(u.name + "同学，欢迎光临,有有有有请下一位");
                 
-                lb_tip.Text = "微笑打卡，不然打不上";
-                tb_tel.Focus();
-                tb_tel.Text = "";
-            }
-            else
-            {
+            //    lb_tip.Text = "微笑打卡，不然打不上";
+            //    tb_tel.Focus();
+            //    tb_tel.Text = "";
+            //}
+            //else
+            //{
 
-            }
+            //}
         }
 
-        public bool SaveImg()
+        public bool SaveImg(string tel,Mat frame,FrameRect selectArea,string basePath)
         {
-            var tel = tb_tel.Text.Trim();
-            if (selectRect != null)
+            var rgbFrameImg = frame.ToImage<Rgb, byte>();
+            tel = tel.Trim();
+            if (selectArea != null)
             {
-                rgbImg.Save(tel + ".jpg");
+                var selectImg = rgbFrameImg.Copy(selectArea.rect);
+                selectImg.Save(tel + ".jpg");
                 return true;
             }
             return false;
@@ -306,6 +351,30 @@ namespace FaceTest
         private void btn_restart_Click(object sender, EventArgs e)
         {
             flag = 0;
+            
+        }
+
+        public void onSmileTick()
+        {
+            
+            var num = int.Parse(lb_num.Text);
+            lb_num.Text = (num + 1).ToString();
+            lb_num.Show();
+            if (num == 0)
+            {
+                speak("3 2 1 咔嚓，请输入手机号码");
+            }
+            if (num == 3)
+            {
+                lb_num.Text = "0";
+                lb_num.Hide();
+                timer1.Stop();
+                timerState = false;
+            }
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
             
         }
     }
