@@ -45,11 +45,13 @@
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.pb_mengban = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.imageBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.imageBox2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pb_save)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pb_mengban)).BeginInit();
             this.SuspendLayout();
             // 
             // imageBox1
@@ -70,6 +72,7 @@
             this.tb_tel.Name = "tb_tel";
             this.tb_tel.Size = new System.Drawing.Size(290, 45);
             this.tb_tel.TabIndex = 4;
+            this.tb_tel.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.tb_tel_KeyPress);
             // 
             // label1
             // 
@@ -109,33 +112,30 @@
             this.lb_depart.AutoSize = true;
             this.lb_depart.BackColor = System.Drawing.Color.Transparent;
             this.lb_depart.Font = new System.Drawing.Font("微软雅黑", 18.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.lb_depart.Location = new System.Drawing.Point(561, 694);
+            this.lb_depart.Location = new System.Drawing.Point(550, 694);
             this.lb_depart.Name = "lb_depart";
-            this.lb_depart.Size = new System.Drawing.Size(98, 32);
+            this.lb_depart.Size = new System.Drawing.Size(0, 32);
             this.lb_depart.TabIndex = 10;
-            this.lb_depart.Text = "bumen";
             // 
             // lb_company
             // 
             this.lb_company.AutoSize = true;
             this.lb_company.BackColor = System.Drawing.Color.Transparent;
             this.lb_company.Font = new System.Drawing.Font("微软雅黑", 18.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.lb_company.Location = new System.Drawing.Point(337, 694);
+            this.lb_company.Location = new System.Drawing.Point(307, 694);
             this.lb_company.Name = "lb_company";
-            this.lb_company.Size = new System.Drawing.Size(97, 32);
+            this.lb_company.Size = new System.Drawing.Size(0, 32);
             this.lb_company.TabIndex = 9;
-            this.lb_company.Text = "gongsi";
             // 
             // lb_name
             // 
             this.lb_name.AutoSize = true;
             this.lb_name.BackColor = System.Drawing.Color.Transparent;
             this.lb_name.Font = new System.Drawing.Font("微软雅黑", 18.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.lb_name.Location = new System.Drawing.Point(133, 694);
+            this.lb_name.Location = new System.Drawing.Point(124, 694);
             this.lb_name.Name = "lb_name";
-            this.lb_name.Size = new System.Drawing.Size(81, 32);
+            this.lb_name.Size = new System.Drawing.Size(0, 32);
             this.lb_name.TabIndex = 8;
-            this.lb_name.Text = "name";
             // 
             // lb_tip
             // 
@@ -143,7 +143,7 @@
             this.lb_tip.BackColor = System.Drawing.Color.Transparent;
             this.lb_tip.Font = new System.Drawing.Font("微软雅黑", 35.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.lb_tip.ForeColor = System.Drawing.Color.Black;
-            this.lb_tip.Location = new System.Drawing.Point(198, 73);
+            this.lb_tip.Location = new System.Drawing.Point(199, 73);
             this.lb_tip.Name = "lb_tip";
             this.lb_tip.Size = new System.Drawing.Size(495, 60);
             this.lb_tip.TabIndex = 11;
@@ -158,7 +158,8 @@
             this.lb_num.Name = "lb_num";
             this.lb_num.Size = new System.Drawing.Size(92, 104);
             this.lb_num.TabIndex = 12;
-            this.lb_num.Text = "0";
+            this.lb_num.Text = "3";
+            this.lb_num.Visible = false;
             // 
             // imageBox2
             // 
@@ -172,6 +173,7 @@
             // 
             // pb_save
             // 
+            this.pb_save.BackColor = System.Drawing.Color.Transparent;
             this.pb_save.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.pb_save.Image = ((System.Drawing.Image)(resources.GetObject("pb_save.Image")));
             this.pb_save.Location = new System.Drawing.Point(1103, 662);
@@ -183,6 +185,7 @@
             // 
             // pictureBox1
             // 
+            this.pictureBox1.BackColor = System.Drawing.Color.Transparent;
             this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
             this.pictureBox1.Location = new System.Drawing.Point(944, 574);
             this.pictureBox1.Name = "pictureBox1";
@@ -204,8 +207,20 @@
             // 
             // timer1
             // 
+            this.timer1.Enabled = true;
             this.timer1.Interval = 1000;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            // 
+            // pb_mengban
+            // 
+            this.pb_mengban.BackColor = System.Drawing.Color.Transparent;
+            this.pb_mengban.Image = ((System.Drawing.Image)(resources.GetObject("pb_mengban.Image")));
+            this.pb_mengban.Location = new System.Drawing.Point(73, 166);
+            this.pb_mengban.Name = "pb_mengban";
+            this.pb_mengban.Size = new System.Drawing.Size(640, 480);
+            this.pb_mengban.TabIndex = 17;
+            this.pb_mengban.TabStop = false;
+            this.pb_mengban.Visible = false;
             // 
             // MainForm
             // 
@@ -213,6 +228,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
             this.ClientSize = new System.Drawing.Size(1259, 768);
+            this.Controls.Add(this.pb_mengban);
             this.Controls.Add(this.pictureBox2);
             this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.pb_save);
@@ -238,6 +254,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.pb_save)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pb_mengban)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -260,6 +277,7 @@
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.PictureBox pictureBox2;
         private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.PictureBox pb_mengban;
     }
 }
 

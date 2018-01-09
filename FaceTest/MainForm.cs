@@ -34,6 +34,7 @@ namespace FaceTest
 
         private int imgWidth;
         private int imgHeigth;
+        private string imgPath;
 
         public MainForm()
         {
@@ -55,7 +56,7 @@ namespace FaceTest
                 ReadConfig(ConfigurationManager.AppSettings["UserListPath"]);
                 imgWidth = int.Parse(ConfigurationManager.AppSettings["ImgWidth"]);
                 imgHeigth = int.Parse(ConfigurationManager.AppSettings["ImgHeight"]);
-
+                imgPath = ConfigurationManager.AppSettings["ImgSavePath"];
             }
             catch (Exception ex)
             {
@@ -70,8 +71,13 @@ namespace FaceTest
         private FrameRect preFace = null;
         private FrameRect preSmile = null;
         private FrameRect preSelectArea = null;
-        private Mat preFrame = null;
-        private bool timerState = false;
+        private Mat resFrame = null;
+        private FrameRect resSelectArea = null;
+        private bool smileStart = false;
+        private bool isSelect = false;
+        private int peopleSpan = 10;
+        private int currSpan = 10;
+        private bool isPeopleSpan = false;
 
         private void Capture_ImageGrabbed(object sender, EventArgs e)
         {
@@ -87,7 +93,7 @@ namespace FaceTest
                 face = getFace(frame);
                 selectArea = getSelectArea(frame, face);
                 smile = getSmile(frame, face);
-                preFrame = frame;
+                
                 preFace = face;
                 preSmile = smile;
                 preSelectArea = selectArea;
@@ -106,9 +112,13 @@ namespace FaceTest
             {
                 showRateIndex++;
                 OnSmileAction(frame, face, smile, selectArea);
-                
-                Image<Rgba, byte> rgbaImg = frame.ToImage<Rgba, byte>();
-                imageBox2.Image = rgbaImg.Copy(selectArea.rect);
+                if (isSelect)
+                {
+                    resFrame = frame;
+                    resSelectArea = selectArea;
+                    Image<Rgba, byte> rgbaImg = frame.ToImage<Rgba, byte>();
+                    imageBox2.Image = rgbaImg.Copy(selectArea.rect);
+                }
                 g.DrawRectangle(new Pen(Color.Blue, 3), smile.rect);
             }
             imageBox1.Image = showFrame;       //显示图像  
@@ -116,12 +126,9 @@ namespace FaceTest
 
         private void OnSmileAction(Mat frame,FrameRect face,FrameRect smile,FrameRect selectArea)
         {
-            if(timerState == false)
+            if(!smileStart && isSelect)
             {
-                timerState = true;
-                timer1.Enabled = true;
-                timer1.Start();
-                tb_tel.AppendText("1");
+                smileStart = true;
             }
         }
 
@@ -197,24 +204,29 @@ namespace FaceTest
         private void btn_save_Click(object sender, EventArgs e)
         {
             var tel = tb_tel.Text.Trim();
+            if(tel.Length !=11 && tel.Length != 1)
+            {
+                speak("小伙子，手机号输错了");
+                return;
+            }
             User u = GetUserByTel(tel);
+            if(u == null)
+            {
+                speak("小伙子，手机号输错了,检查一下吧");
+                return;
+            }
             lb_name.Text = u.name;
             lb_company.Text = u.company;
             lb_depart.Text = u.depart;
-            
-            //if (SaveImg(tel,frame))
-            //{
-            //    Thread t = new Thread(new ParameterizedThreadStart(speak));
-            //    t.Start(u.name + "同学，欢迎光临,有有有有请下一位");
-                
-            //    lb_tip.Text = "微笑打卡，不然打不上";
-            //    tb_tel.Focus();
-            //    tb_tel.Text = "";
-            //}
-            //else
-            //{
-
-            //}
+            if(resFrame != null && resSelectArea != null && SaveImg(tel, resFrame, resSelectArea, "./"))
+            {
+                string word = u.name + "同学,欢迎光临，乌拉拉拉拉";
+                if (u.tel == "1") word = "董事长您好，欢迎光临";
+                if (u.tel == "2") word = "董事长夫人您好，欢迎光临";
+                speak(word);
+                tb_tel.Text = "";
+                isPeopleSpan = true;
+            }
         }
 
         public bool SaveImg(string tel,Mat frame,FrameRect selectArea,string basePath)
@@ -224,21 +236,25 @@ namespace FaceTest
             if (selectArea != null)
             {
                 var selectImg = rgbFrameImg.Copy(selectArea.rect);
-                selectImg.Save(tel + ".jpg");
+                selectImg.Save(imgPath+"/"+tel + ".jpg");
                 return true;
             }
             return false;
         }
 
-        public static void speak(object str)
+        public static void speak(string str)
+        {
+            Thread t = new Thread(new ParameterizedThreadStart(speakThread));
+            t.Start(str);
+        }
+
+        public static void speakThread(object str)
         {
             SpVoice voice = new SpVoice();
-            voice.Rate = 2; //语速,[-10,10]
+            voice.Rate = 1; //语速,[-10,10]
             voice.Volume = 100; //音量,[0,100]
             voice.Voice = voice.GetVoices().Item(0); //语音库
             voice.Speak(str.ToString());
-
-            flag = 0;
         }
 
         /// <summary>  
@@ -321,61 +337,120 @@ namespace FaceTest
             String line;
             while ((line = sr.ReadLine()) != null)
             {
+                line = line.Trim();
                 var info = line.Split(' ');
                 var user = new User();
-                user.name = info[0];
-                user.tel = info[1];
-                user.company = info[2];
-                user.depart = info[3];
+                user.name = info[3];
+                user.tel = info[0];
+                user.company = info[1];
+                user.depart = info[2];
                 userList.Add(user);
             }
         }
 
         public User GetUserByTel(string tel)
         {
-            User maxLike = userList[0];
-            decimal rate = 0;
+            //User maxLike = null;
+            //decimal rate = 0;
             foreach(var user in userList)
             {
-                StringCompute compute = new StringCompute(tel, user.tel);
-                compute.SpeedyCompute();
-                if (compute.ComputeResult.Rate > rate)
+                //StringCompute compute = new StringCompute(tel, user.tel);
+                //compute.SpeedyCompute();
+                //if (compute.ComputeResult.Rate > rate)
+                //{
+                //    rate = compute.ComputeResult.Rate;
+                //    maxLike = user;
+                //}
+                if(user.tel == tel.Trim())
                 {
-                    rate = compute.ComputeResult.Rate;
-                    maxLike = user;
+                    return user;
                 }
             }
-            return maxLike;
+            return null;
         }
 
         private void btn_restart_Click(object sender, EventArgs e)
         {
-            flag = 0;
+            isSelect = true;
+            lb_name.Text = "";
+            lb_depart.Text = "";
+            lb_company.Text = "";
+            imageBox2.Image = null;
             
+        }
+
+
+        /// <summary>  
+        /// 获取时间戳  
+        /// </summary>  
+        /// <returns></returns>  
+        private long GetTimeStamp()
+        {
+            TimeSpan ts = DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0);
+            return Convert.ToInt64(ts.TotalSeconds);
         }
 
         public void onSmileTick()
         {
-            
-            var num = int.Parse(lb_num.Text);
-            lb_num.Text = (num + 1).ToString();
-            lb_num.Show();
-            if (num == 0)
+            if(smileStart)
             {
-                speak("3 2 1 咔嚓，请输入手机号码");
+                var num = int.Parse(lb_num.Text);
+                lb_num.Text = (num - 1).ToString();
+                lb_num.Show();
+                if (num == 3)
+                {
+                    speak("3 2 1 裤衩咔嚓裤衩，请输入手机号码，回车结束");
+                    pb_mengban.Show();
+                }
+                if(num == 2)
+                {
+                    pb_mengban.Hide();
+                }
+                if(num == 1)
+                {
+                    pb_mengban.Show();
+                }
+                if (num == 0)
+                {
+                    lb_num.Text = "3";
+                    lb_num.Hide();
+                    smileStart = false;
+                    isSelect = false;
+                    pb_mengban.Hide();
+                }
             }
-            if (num == 3)
+                
+        }
+
+        public void onPeopleSpan()
+        {
+            if (isPeopleSpan)
             {
-                lb_num.Text = "0";
-                lb_num.Hide();
-                timer1.Stop();
-                timerState = false;
+                if(currSpan > 0)
+                {
+                    currSpan--;
+                }
+                if(currSpan == 0)
+                {
+                    currSpan = peopleSpan;
+                    //isSelect = true;
+                    isPeopleSpan = false;
+                }
             }
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            
+            onSmileTick();
+            onPeopleSpan();
+        }
+
+        private void tb_tel_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if ((int)e.KeyChar == 13)
+            {
+                btn_save_Click(null, null);
+            }
         }
     }
 }
