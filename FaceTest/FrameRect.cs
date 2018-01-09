@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 
-namespace FaceTest
+namespace SmileFace
 {
     public class FrameRect
     {

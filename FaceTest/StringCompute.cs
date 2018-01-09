@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-namespace FaceTest
+namespace SmileFace
 {
     public class StringCompute
     {

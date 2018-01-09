@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace FaceTest.Properties {
+namespace SmileFace.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]

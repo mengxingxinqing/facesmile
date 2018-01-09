@@ -17,7 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace FaceTest
+namespace SmileFace
 {
     public partial class MainForm : Form
     {
@@ -35,7 +35,9 @@ namespace FaceTest
         private int imgWidth;
         private int imgHeigth;
         private string imgPath;
-
+        private Image<Bgr, Byte> initFace;
+        private int openFtp = 0;
+        private Image<Bgr, Byte> hatImg;
         public MainForm()
         {
             InitializeComponent();
@@ -57,6 +59,9 @@ namespace FaceTest
                 imgWidth = int.Parse(ConfigurationManager.AppSettings["ImgWidth"]);
                 imgHeigth = int.Parse(ConfigurationManager.AppSettings["ImgHeight"]);
                 imgPath = ConfigurationManager.AppSettings["ImgSavePath"];
+                initFace = new Image<Bgr, byte>("initFace.jpg");
+                hatImg = new Image<Bgr, byte>("hatImg.jpg");
+                openFtp = int.Parse(ConfigurationManager.AppSettings["OpenFtp"]);
             }
             catch (Exception ex)
             {
@@ -66,7 +71,7 @@ namespace FaceTest
         }
 
 
-        private int showRate = 10;
+        private int showRate = 20;
         private int showRateIndex = 0;
         private FrameRect preFace = null;
         private FrameRect preSmile = null;
@@ -107,7 +112,13 @@ namespace FaceTest
             
             Graphics g = Graphics.FromImage(showFrame.Bitmap);
             if(face != null)
+            {
                 g.DrawRectangle(new Pen(Color.Red, 3), face.rect);
+                int x = face.rect.X + (face.rect.Width - hatImg.Width) / 2;
+                int y = face.rect.Y - hatImg.Height;
+
+                g.DrawImage(hatImg.Bitmap,new Point(x,y));
+            }
             if (smile != null)
             {
                 showRateIndex++;
@@ -218,7 +229,8 @@ namespace FaceTest
             lb_name.Text = u.name;
             lb_company.Text = u.company;
             lb_depart.Text = u.depart;
-            if(resFrame != null && resSelectArea != null && SaveImg(tel, resFrame, resSelectArea, "./"))
+            string fileName = u.company + "_" + u.depart + "_" + u.name + ".jpg";
+            if(resFrame != null && resSelectArea != null && SaveSelectAreaImg(tel, resFrame, resSelectArea, fileName))
             {
                 string word = u.name + "同学,欢迎光临，乌拉拉拉拉";
                 if (u.tel == "1") word = "董事长您好，欢迎光临";
@@ -229,14 +241,23 @@ namespace FaceTest
             }
         }
 
-        public bool SaveImg(string tel,Mat frame,FrameRect selectArea,string basePath)
+        public bool SaveSelectAreaImg(string tel,Mat frame,FrameRect selectArea,string name)
         {
-            var rgbFrameImg = frame.ToImage<Rgb, byte>();
-            tel = tel.Trim();
+            var rgbFrameImg = frame.ToImage<Rgba, byte>();
+            string strencode = "";
+            byte[] utf8 = Encoding.UTF8.GetBytes(name);
+            name = Encoding.UTF8.GetString(utf8);
             if (selectArea != null)
             {
-                var selectImg = rgbFrameImg.Copy(selectArea.rect);
-                selectImg.Save(imgPath+"/"+tel + ".jpg");
+                var selectImg = rgbFrameImg.Copy(selectArea.rect).Bitmap;
+                string path = imgPath + "/" + name;
+                //selectImg.Save(path);
+                selectImg.Save(path, System.Drawing.Imaging.ImageFormat.Jpeg);
+                if (openFtp != 0)
+                {
+                    UploadFtp("UserFace", path);
+                }
+
                 return true;
             }
             return false;
@@ -261,7 +282,7 @@ namespace FaceTest
         /// Method to upload the specified file to the specified FTP Server  
         /// </summary>  
         /// <param name="filename">file full name to be uploaded</param>  
-        private bool Upload(string filePath, string filename)
+        private bool UploadFtp(string filePath, string filename)
         {
             FileInfo fileInf = new FileInfo(filename);
             string uri = "ftp://" + ftpIp + "/" + filePath + "/" + fileInf.Name;
@@ -375,8 +396,8 @@ namespace FaceTest
             lb_name.Text = "";
             lb_depart.Text = "";
             lb_company.Text = "";
-            imageBox2.Image = null;
-            
+            imageBox2.Image = initFace;
+
         }
 
 
@@ -451,6 +472,14 @@ namespace FaceTest
             {
                 btn_save_Click(null, null);
             }
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            imageBox2.Image = initFace;
+            pb_mengban.Location = new Point(15, 15);
+            pb_mengban.Parent = imageBox1;
+            //pb_mengban.Show();
         }
     }
 }

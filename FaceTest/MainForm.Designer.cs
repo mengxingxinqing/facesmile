@@ -1,4 +1,4 @@
-﻿namespace FaceTest
+﻿namespace SmileFace
 {
     partial class MainForm
     {
@@ -164,7 +164,7 @@
             // imageBox2
             // 
             this.imageBox2.FunctionalMode = Emgu.CV.UI.ImageBox.FunctionalModeOption.Minimum;
-            this.imageBox2.InitialImage = global::FaceTest.Properties.Resources.DefaultImg;
+            this.imageBox2.InitialImage = ((System.Drawing.Image)(resources.GetObject("imageBox2.InitialImage")));
             this.imageBox2.Location = new System.Drawing.Point(903, 166);
             this.imageBox2.Name = "imageBox2";
             this.imageBox2.Size = new System.Drawing.Size(300, 400);
@@ -214,6 +214,7 @@
             // pb_mengban
             // 
             this.pb_mengban.BackColor = System.Drawing.Color.Transparent;
+            this.pb_mengban.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.pb_mengban.Image = ((System.Drawing.Image)(resources.GetObject("pb_mengban.Image")));
             this.pb_mengban.Location = new System.Drawing.Point(73, 166);
             this.pb_mengban.Name = "pb_mengban";
@@ -249,6 +250,7 @@
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "签到-豆包酷讯";
+            this.Load += new System.EventHandler(this.MainForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.imageBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.imageBox2)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pb_save)).EndInit();
