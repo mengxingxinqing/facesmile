@@ -30,7 +30,7 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            this.imageBox1 = new Emgu.CV.UI.ImageBox();
+            this.imageBox_cap = new Emgu.CV.UI.ImageBox();
             this.tb_tel = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -40,28 +40,28 @@
             this.lb_name = new System.Windows.Forms.Label();
             this.lb_tip = new System.Windows.Forms.Label();
             this.lb_num = new System.Windows.Forms.Label();
-            this.imageBox2 = new Emgu.CV.UI.ImageBox();
+            this.imageBox_pic = new Emgu.CV.UI.ImageBox();
             this.pb_save = new System.Windows.Forms.PictureBox();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.pb_mengban = new System.Windows.Forms.PictureBox();
-            ((System.ComponentModel.ISupportInitialize)(this.imageBox1)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.imageBox2)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.imageBox_cap)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.imageBox_pic)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pb_save)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pb_mengban)).BeginInit();
             this.SuspendLayout();
             // 
-            // imageBox1
+            // imageBox_cap
             // 
-            this.imageBox1.FunctionalMode = Emgu.CV.UI.ImageBox.FunctionalModeOption.Minimum;
-            this.imageBox1.Location = new System.Drawing.Point(73, 167);
-            this.imageBox1.Name = "imageBox1";
-            this.imageBox1.Size = new System.Drawing.Size(640, 480);
-            this.imageBox1.TabIndex = 2;
-            this.imageBox1.TabStop = false;
+            this.imageBox_cap.FunctionalMode = Emgu.CV.UI.ImageBox.FunctionalModeOption.Minimum;
+            this.imageBox_cap.Location = new System.Drawing.Point(73, 167);
+            this.imageBox_cap.Name = "imageBox_cap";
+            this.imageBox_cap.Size = new System.Drawing.Size(640, 480);
+            this.imageBox_cap.TabIndex = 2;
+            this.imageBox_cap.TabStop = false;
             // 
             // tb_tel
             // 
@@ -161,15 +161,15 @@
             this.lb_num.Text = "3";
             this.lb_num.Visible = false;
             // 
-            // imageBox2
+            // imageBox_pic
             // 
-            this.imageBox2.FunctionalMode = Emgu.CV.UI.ImageBox.FunctionalModeOption.Minimum;
-            this.imageBox2.InitialImage = ((System.Drawing.Image)(resources.GetObject("imageBox2.InitialImage")));
-            this.imageBox2.Location = new System.Drawing.Point(903, 166);
-            this.imageBox2.Name = "imageBox2";
-            this.imageBox2.Size = new System.Drawing.Size(300, 400);
-            this.imageBox2.TabIndex = 2;
-            this.imageBox2.TabStop = false;
+            this.imageBox_pic.FunctionalMode = Emgu.CV.UI.ImageBox.FunctionalModeOption.Minimum;
+            this.imageBox_pic.InitialImage = ((System.Drawing.Image)(resources.GetObject("imageBox_pic.InitialImage")));
+            this.imageBox_pic.Location = new System.Drawing.Point(903, 166);
+            this.imageBox_pic.Name = "imageBox_pic";
+            this.imageBox_pic.Size = new System.Drawing.Size(300, 400);
+            this.imageBox_pic.TabIndex = 2;
+            this.imageBox_pic.TabStop = false;
             // 
             // pb_save
             // 
@@ -233,7 +233,7 @@
             this.Controls.Add(this.pictureBox2);
             this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.pb_save);
-            this.Controls.Add(this.imageBox2);
+            this.Controls.Add(this.imageBox_pic);
             this.Controls.Add(this.lb_num);
             this.Controls.Add(this.lb_tip);
             this.Controls.Add(this.lb_depart);
@@ -243,7 +243,7 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.tb_tel);
-            this.Controls.Add(this.imageBox1);
+            this.Controls.Add(this.imageBox_cap);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -251,8 +251,8 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "签到-豆包酷讯";
             this.Load += new System.EventHandler(this.MainForm_Load);
-            ((System.ComponentModel.ISupportInitialize)(this.imageBox1)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.imageBox2)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.imageBox_cap)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.imageBox_pic)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pb_save)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
@@ -264,7 +264,7 @@
 
         #endregion
 
-        private Emgu.CV.UI.ImageBox imageBox1;
+        private Emgu.CV.UI.ImageBox imageBox_cap;
         private System.Windows.Forms.TextBox tb_tel;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
@@ -274,7 +274,7 @@
         private System.Windows.Forms.Label lb_name;
         private System.Windows.Forms.Label lb_tip;
         private System.Windows.Forms.Label lb_num;
-        private Emgu.CV.UI.ImageBox imageBox2;
+        private Emgu.CV.UI.ImageBox imageBox_pic;
         private System.Windows.Forms.PictureBox pb_save;
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.PictureBox pictureBox2;

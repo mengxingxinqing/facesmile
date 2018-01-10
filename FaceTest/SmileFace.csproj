@@ -117,6 +117,48 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="bitbug_favicon.ico" />
+    <Content Include="libs\Emgu.CV.Contrib.dll" />
+    <Content Include="libs\Emgu.CV.Contrib.xml" />
+    <Content Include="libs\Emgu.CV.Cuda.dll" />
+    <Content Include="libs\Emgu.CV.Cuda.xml" />
+    <Content Include="libs\Emgu.CV.dll" />
+    <Content Include="libs\Emgu.CV.License.txt" />
+    <Content Include="libs\Emgu.CV.ML.dll" />
+    <Content Include="libs\Emgu.CV.ML.xml" />
+    <Content Include="libs\Emgu.CV.OCR.dll" />
+    <Content Include="libs\Emgu.CV.OCR.xml" />
+    <Content Include="libs\Emgu.CV.Shape.dll" />
+    <Content Include="libs\Emgu.CV.Shape.xml" />
+    <Content Include="libs\Emgu.CV.Stitching.dll" />
+    <Content Include="libs\Emgu.CV.Stitching.xml" />
+    <Content Include="libs\Emgu.CV.Superres.dll" />
+    <Content Include="libs\Emgu.CV.Superres.xml" />
+    <Content Include="libs\Emgu.CV.UI.dll" />
+    <Content Include="libs\Emgu.CV.UI.GL.dll" />
+    <Content Include="libs\Emgu.CV.UI.GL.xml" />
+    <Content Include="libs\Emgu.CV.UI.xml" />
+    <Content Include="libs\Emgu.CV.VideoStab.dll" />
+    <Content Include="libs\Emgu.CV.VideoStab.xml" />
+    <Content Include="libs\Emgu.CV.xml" />
+    <Content Include="libs\Emgu.Util.dll" />
+    <Content Include="libs\Emgu.Util.xml" />
+    <Content Include="libs\haarcascade_eye.xml" />
+    <Content Include="libs\haarcascade_frontalface_default.xml" />
+    <Content Include="libs\haarcascade_smile.xml" />
+    <Content Include="libs\hatImg.png" />
+    <Content Include="libs\hats\1.png" />
+    <Content Include="libs\hats\2.png" />
+    <Content Include="libs\hats\3.png" />
+    <Content Include="libs\hats\4.png" />
+    <Content Include="libs\hats\5.png" />
+    <Content Include="libs\hats\6.png" />
+    <Content Include="libs\initFace.jpg" />
+    <Content Include="libs\lbpcascade_frontalface.xml" />
+    <Content Include="libs\ZedGraph.dll" />
+    <Content Include="libs\ZedGraph.license.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="libs\imgs\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

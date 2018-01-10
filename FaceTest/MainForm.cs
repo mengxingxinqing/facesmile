@@ -16,9 +16,13 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+/**
+ * 需要将libs中的文件拷贝到生成路径下
+ **/
 
 namespace SmileFace
 {
+    
     public partial class MainForm : Form
     {
         Capture capture;
@@ -37,7 +41,10 @@ namespace SmileFace
         private string imgPath;
         private Image<Bgr, Byte> initFace;
         private int openFtp = 0;
-        private Image<Bgr, Byte> hatImg;
+        private Image<Bgra, Byte> hatImg;
+        private List<Image<Bgra, Byte>> hatList = new List<Image<Bgra, byte>>();
+        private string hatPath;
+        
         public MainForm()
         {
             InitializeComponent();
@@ -59,8 +66,9 @@ namespace SmileFace
                 imgWidth = int.Parse(ConfigurationManager.AppSettings["ImgWidth"]);
                 imgHeigth = int.Parse(ConfigurationManager.AppSettings["ImgHeight"]);
                 imgPath = ConfigurationManager.AppSettings["ImgSavePath"];
+                hatPath = ConfigurationManager.AppSettings["HatPath"];
                 initFace = new Image<Bgr, byte>("initFace.jpg");
-                hatImg = new Image<Bgr, byte>("hatImg.jpg");
+                getAllHat();
                 openFtp = int.Parse(ConfigurationManager.AppSettings["OpenFtp"]);
             }
             catch (Exception ex)
@@ -69,15 +77,31 @@ namespace SmileFace
             }
             
         }
+        private void getAllHat()
+        {
+            var files = Directory.GetFiles(hatPath, "*.png");
+
+            foreach (var file in files) { 
+                hatImg = new Image<Bgra, byte>(file).Resize(250, 130, Inter.Linear);
+                hatList.Add(hatImg);
+            }
+        }
+        private void getRandHat()
+        {
+            int len = hatList.Count();
+            Random rd = new Random();
+            hatImg = hatList[rd.Next(0, len)];
+        }
 
 
-        private int showRate = 20;
+        private int showRate = 10;
         private int showRateIndex = 0;
         private FrameRect preFace = null;
         private FrameRect preSmile = null;
         private FrameRect preSelectArea = null;
         private Mat resFrame = null;
         private FrameRect resSelectArea = null;
+        private FrameRect resSelectFace = null;
         private bool smileStart = false;
         private bool isSelect = false;
         private int peopleSpan = 10;
@@ -89,8 +113,6 @@ namespace SmileFace
             
             Mat frame = new Mat();
             capture.Retrieve(frame, 0);    //接收数据
-
-
             var showFrame = frame.Clone();
             FrameRect face, smile, selectArea;
             if (showRateIndex == 0 || showRateIndex % showRate == 0)
@@ -98,8 +120,10 @@ namespace SmileFace
                 face = getFace(frame);
                 selectArea = getSelectArea(frame, face);
                 smile = getSmile(frame, face);
-                
-                preFace = face;
+                if(face != null)
+                {
+                    preFace = face;
+                }
                 preSmile = smile;
                 preSelectArea = selectArea;
             }
@@ -109,15 +133,15 @@ namespace SmileFace
                 selectArea = preSelectArea;
                 smile = preSmile; 
             }
+            face = face == null ? preFace : face;
             
             Graphics g = Graphics.FromImage(showFrame.Bitmap);
-            if(face != null)
+            
+            if (face != null)
             {
+                DrawHat(preFace.rect, g);
                 g.DrawRectangle(new Pen(Color.Red, 3), face.rect);
-                int x = face.rect.X + (face.rect.Width - hatImg.Width) / 2;
-                int y = face.rect.Y - hatImg.Height;
-
-                g.DrawImage(hatImg.Bitmap,new Point(x,y));
+                
             }
             if (smile != null)
             {
@@ -127,12 +151,24 @@ namespace SmileFace
                 {
                     resFrame = frame;
                     resSelectArea = selectArea;
-                    Image<Rgba, byte> rgbaImg = frame.ToImage<Rgba, byte>();
-                    imageBox2.Image = rgbaImg.Copy(selectArea.rect);
+                    resSelectFace = face;
+                    
+                    Image<Rgba, byte> rgbaImg = frame.ToImage<Rgba, byte>().Copy(selectArea.rect);
+                    Graphics g_pic = Graphics.FromImage(rgbaImg.Bitmap);
+                    //DrawHat(new Rectangle(face.rect.X - selectArea.rect.X, face.rect.Y - selectArea.rect.Y, face.rect.Width, face.rect.Height), g_pic);
+                    imageBox_pic.Image = rgbaImg;
                 }
                 g.DrawRectangle(new Pen(Color.Blue, 3), smile.rect);
             }
-            imageBox1.Image = showFrame;       //显示图像  
+            imageBox_cap.Image = showFrame;       //显示图像
+            
+        }
+
+        private void DrawHat(Rectangle face, Graphics g)
+        {
+            int x = face.X + (face.Width - hatImg.Width) / 2;
+            int y = face.Y - hatImg.Height * 4 / 5;
+            g.DrawImage(hatImg.Bitmap, new Point(x, y));
         }
 
         private void OnSmileAction(Mat frame,FrameRect face,FrameRect smile,FrameRect selectArea)
@@ -221,7 +257,8 @@ namespace SmileFace
                 return;
             }
             User u = GetUserByTel(tel);
-            if(u == null)
+            getRandHat();
+            if (u == null)
             {
                 speak("小伙子，手机号输错了,检查一下吧");
                 return;
@@ -396,7 +433,7 @@ namespace SmileFace
             lb_name.Text = "";
             lb_depart.Text = "";
             lb_company.Text = "";
-            imageBox2.Image = initFace;
+            imageBox_pic.Image = initFace;
 
         }
 
@@ -476,9 +513,9 @@ namespace SmileFace
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            imageBox2.Image = initFace;
+            imageBox_pic.Image = initFace;
             pb_mengban.Location = new Point(15, 15);
-            pb_mengban.Parent = imageBox1;
+            pb_mengban.Parent = imageBox_cap;
             //pb_mengban.Show();
         }
     }
