@@ -158,7 +158,7 @@
             this.lb_num.Name = "lb_num";
             this.lb_num.Size = new System.Drawing.Size(92, 104);
             this.lb_num.TabIndex = 12;
-            this.lb_num.Text = "3";
+            this.lb_num.Text = "4";
             this.lb_num.Visible = false;
             // 
             // imageBox_pic

@@ -1,5 +1,6 @@
 ﻿using Emgu.CV;
 using Emgu.CV.CvEnum;
+
 using Emgu.CV.Structure;
 using SpeechLib;
 using System;
@@ -32,9 +33,9 @@ namespace SmileFace
         private string smileXmlPath = "haarcascade_smile.xml";
         private CascadeClassifier faceClassifier;
         private CascadeClassifier smileClassifier;
-        private string ftpIp;
-        private string ftpUser;
-        private string ftpPwd;
+        private static string ftpIp;
+        private static string ftpUser;
+        private static string ftpPwd;
 
         private int imgWidth;
         private int imgHeigth;
@@ -106,7 +107,7 @@ namespace SmileFace
         private bool isSelect = false;
         private int peopleSpan = 10;
         private int currSpan = 10;
-        private bool isPeopleSpan = false;
+        //private bool isPeopleSpan = false;
 
         private void Capture_ImageGrabbed(object sender, EventArgs e)
         {
@@ -173,9 +174,9 @@ namespace SmileFace
 
         private void OnSmileAction(Mat frame,FrameRect face,FrameRect smile,FrameRect selectArea)
         {
-            if(!smileStart && isSelect)
+            if(!smileState.isStart && isSelect)
             {
-                smileStart = true;
+                smileState.Start();
             }
         }
 
@@ -270,11 +271,10 @@ namespace SmileFace
             if(resFrame != null && resSelectArea != null && SaveSelectAreaImg(tel, resFrame, resSelectArea, fileName))
             {
                 string word = u.name + "同学,欢迎光临，乌拉拉拉拉";
-                if (u.tel == "1") word = "董事长您好，欢迎光临";
-                if (u.tel == "2") word = "董事长夫人您好，欢迎光临";
+                if (u.tel == "1") word = "第一视频集团董事局主席，欢迎光临";
+                if (u.tel == "2") word = "第一视频集团执行董事，欢迎光临";
                 speak(word);
                 tb_tel.Text = "";
-                isPeopleSpan = true;
             }
         }
 
@@ -292,7 +292,7 @@ namespace SmileFace
                 selectImg.Save(path, System.Drawing.Imaging.ImageFormat.Jpeg);
                 if (openFtp != 0)
                 {
-                    UploadFtp("UserFace", path);
+                    upload(path);
                 }
 
                 return true;
@@ -306,7 +306,7 @@ namespace SmileFace
             t.Start(str);
         }
 
-        public static void speakThread(object str)
+        private static void speakThread(object str)
         {
             SpVoice voice = new SpVoice();
             voice.Rate = 1; //语速,[-10,10]
@@ -315,18 +315,29 @@ namespace SmileFace
             voice.Speak(str.ToString());
         }
 
+        public static void upload(string path)
+        {
+            Thread t = new Thread(new ParameterizedThreadStart(uploadThread));
+            t.Start(path);
+        }
+
+        private static void uploadThread(object path)
+        {
+            UploadFtp(path.ToString());
+        }
+
         /// <summary>  
         /// Method to upload the specified file to the specified FTP Server  
         /// </summary>  
         /// <param name="filename">file full name to be uploaded</param>  
-        private bool UploadFtp(string filePath, string filename)
+        private static bool UploadFtp(string filename)
         {
             FileInfo fileInf = new FileInfo(filename);
-            string uri = "ftp://" + ftpIp + "/" + filePath + "/" + fileInf.Name;
+            string uri = "ftp://" + ftpIp + "/" + fileInf.Name;
             FtpWebRequest reqFTP;
 
             // Create FtpWebRequest object from the Uri provided  
-            reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri("ftp://" + ftpIp + "/" + filePath + "/" + fileInf.Name));
+            reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri("ftp://" + ftpIp + "/" + fileInf.Name));
 
             // Provide the WebPermission Credintials  
             reqFTP.Credentials = new NetworkCredential(ftpUser, ftpPwd);
@@ -429,11 +440,12 @@ namespace SmileFace
 
         private void btn_restart_Click(object sender, EventArgs e)
         {
-            isSelect = true;
+            startState.Start();
             lb_name.Text = "";
             lb_depart.Text = "";
             lb_company.Text = "";
             imageBox_pic.Image = initFace;
+            speak("开始笑");
 
         }
 
@@ -447,60 +459,56 @@ namespace SmileFace
             TimeSpan ts = DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0);
             return Convert.ToInt64(ts.TotalSeconds);
         }
-
+        private StateInfo smileState = new StateInfo(4);
         public void onSmileTick()
         {
-            if(smileStart)
+            if (!isSelect) return;
+            if (smileState.isStart)
             {
                 var num = int.Parse(lb_num.Text);
                 lb_num.Text = (num - 1).ToString();
                 lb_num.Show();
-                if (num == 3)
-                {
-                    speak("3 2 1 裤衩咔嚓裤衩，请输入手机号码，回车结束");
-                    pb_mengban.Show();
-                }
-                if(num == 2)
-                {
-                    pb_mengban.Hide();
-                }
-                if(num == 1)
-                {
-                    pb_mengban.Show();
-                }
-                if (num == 0)
-                {
-                    lb_num.Text = "3";
-                    lb_num.Hide();
-                    smileStart = false;
-                    isSelect = false;
-                    pb_mengban.Hide();
-                }
             }
-                
+            smileState.Step();
+            if (smileState.checkStep(1))
+            {
+                speak("3 2 1 裤衩咔嚓裤衩，请输入手机号码，回车结束");
+                pb_mengban.Show();
+            }
+            else if (smileState.checkStep(2))
+            {
+                pb_mengban.Hide();
+            }
+            else if (smileState.checkStep(3))
+            {
+                pb_mengban.Show();
+            }
+
+            if (smileState.getEnd())
+            {
+                lb_num.Hide();
+                lb_num.Text = "4";
+                isSelect = false;
+                pb_mengban.Hide();
+            }
         }
 
-        public void onPeopleSpan()
+        private StateInfo startState = new StateInfo(2);
+        //点击开始时，延时2s开始截图
+        private void onStartTick()
         {
-            if (isPeopleSpan)
+            startState.Step();
+            if (startState.getEnd())
             {
-                if(currSpan > 0)
-                {
-                    currSpan--;
-                }
-                if(currSpan == 0)
-                {
-                    currSpan = peopleSpan;
-                    //isSelect = true;
-                    isPeopleSpan = false;
-                }
+                isSelect = true;
+                
             }
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
+            onStartTick();
             onSmileTick();
-            onPeopleSpan();
         }
 
         private void tb_tel_KeyPress(object sender, KeyPressEventArgs e)
